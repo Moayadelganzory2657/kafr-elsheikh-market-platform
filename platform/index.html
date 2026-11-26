@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>منصة كفر الشيخ الذكية لدراسة السوق والأنشطة التجارية — V4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div style="font-family: var(--font-display); font-weight: 700; font-size: 1.05rem;">
+      جاري تحميل بيانات منصة كفر الشيخ الذكية...
+    </div>
+    <div id="loading-error" style="color: var(--accent-rose); font-size: 0.9rem; display: none; max-width: 480px; text-align: center;"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo">كش</div>
+        <div>
+          <div class="brand-title" id="platform-title">منصة كفر الشيخ الذكية لدراسة السوق</div>
+          <div class="brand-subtitle">
+            <span>تحليل الفرص والأنشطة التجارية</span>
+            <span class="version-pill">V4</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" id="main-nav" aria-label="التنقل الرئيسي">
+        <button class="nav-tab active" data-view="dashboard">📊 لوحة القيادة</button>
+        <button class="nav-tab" data-view="map">🗺️ خريطة السوق</button>
+        <button class="nav-tab" data-view="catalog">🧭 مستكشف الأنشطة</button>
+        <button class="nav-tab" data-view="compare">⚖️ المقارنة الذكية</button>
+        <button class="nav-tab" data-view="feasibility">🧮 حاسبة الجدوى</button>
+        <button class="nav-tab" data-view="directory">📋 دليل السجلات</button>
+      </nav>
+
+      <div class="topbar-actions">
+        <button id="theme-toggle" class="icon-btn" title="تبديل المظهر">☀️ فاتح</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- ==================== 1. DASHBOARD VIEW ==================== -->
+    <section id="view-dashboard" class="view-section active">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">لوحة القيادة التنفيذية</h1>
+          <p class="section-desc">نظرة شاملة على التوزيع التجاري، مؤشرات التشبع، وأقوى الفرص الاستثمارية في محافظة كفر الشيخ</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="dashboard-kpis"></div>
+
+      <div class="charts-grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>توزيع الأنشطة التجارية حسب القطاع</span>
+            <span class="badge badge-teal">القطاعات الموحدة</span>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-sectors"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>الكثافة التجارية ومؤشر الفرص حسب المركز</span>
+            <span class="badge badge-amber">المراكز والأقسام</span>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-markaz"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-title">
+          <span>مصفوفة التشبع مقابل الفرص الاستثمارية للقطاعات</span>
+          <span class="badge badge-emerald">حجم الفقاعة = عدد الأنشطة القائمة</span>
+        </div>
+        <div class="chart-box-tall">
+          <canvas id="chart-bubble"></canvas>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top: 1.5rem;">
+        <div>
+          <h2 class="section-title" style="font-size: 1.25rem;">أبرز 6 فرص استثمارية واعدة</h2>
+          <p class="section-desc">اضغط على أي فرصة لاستعراض دراسة السوق الكاملة أو محاكاة الجدوى</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-goto-catalog">عرض كامل الدليل ←</button>
+      </div>
+      <div class="spotlight-grid" id="dashboard-spotlight"></div>
+    </section>
+
+    <!-- ==================== 2. INTERACTIVE MAP VIEW ==================== -->
+    <section id="view-map" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">خريطة السوق التفاعلية — كفر الشيخ</h1>
+          <p class="section-desc">استكشف التشبع والفرص على مستوى المراكز أو تصفح النقاط التجارية الموثقة بالإحداثيات</p>
+        </div>
+        <div class="segmented-control" id="map-mode-toggle">
+          <button class="segmented-btn active" data-mode="markaz">طبقة المراكز والفرص</button>
+          <button class="segmented-btn" data-mode="points">النقاط الموثقة بالإحداثيات (<span id="geocoded-count-badge">0</span>)</button>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <div class="card" style="padding: 0.75rem;">
+          <div id="market-map"></div>
+        </div>
+
+        <aside class="map-sidebar">
+          <div class="card">
+            <div class="field-group">
+              <label class="field-label" for="map-sector-filter">تصفية حسب القطاع</label>
+              <select id="map-sector-filter" class="select"></select>
+            </div>
+            <div id="map-summary-stats" style="margin-top: 0.85rem; font-size: 0.85rem; color: var(--text-secondary);"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 0.6rem;">دليل الألوان (مؤشر الفرص / التشبع)</div>
+            <div class="legend-list">
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #10b981;"></span>
+                <span>فرصة مرتفعة / تشبع منخفض (70+)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #f59e0b;"></span>
+                <span>فرصة متوسطة / سوق متوازن (45 – 69)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: #f43f5e;"></span>
+                <span>تشبع مرتفع / منافسة قوية (&lt; 45)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 0.6rem;">ترتيب المراكز للقطاع المختار</div>
+            <div class="map-markaz-list" id="map-markaz-list"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== 3. MARKET STUDY & GAP CATALOG ==================== -->
+    <section id="view-catalog" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">مستكشف الأنشطة ودراسة السوق</h1>
+          <p class="section-desc">دليل تفاعلي للأنشطة التجارية وفجوات السوق مع تقديرات رأس المال والعائد والمخاطر</p>
+        </div>
+        <span class="badge badge-teal" id="catalog-count-badge">0 نشاط</span>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.25rem;">
+        <div class="filter-bar" style="margin-bottom: 0;">
+          <div class="field-group">
+            <label class="field-label" for="cat-search">بحث في الأنشطة</label>
+            <input type="text" id="cat-search" class="input" placeholder="اسم النشاط أو الوصف..." />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cat-status">حالة التغطية</label>
+            <select id="cat-status" class="select">
+              <option value="">الكل</option>
+              <option value="نشاط جديد مضاف">نشاط جديد مضاف</option>
+              <option value="غير مضاف جيداً">غير مضاف جيداً</option>
+              <option value="مكتمل">مكتمل</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cat-sector">القطاع</label>
+            <select id="cat-sector" class="select"></select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cat-saturation">مستوى التشبع</label>
+            <select id="cat-saturation" class="select">
+              <option value="">الكل</option>
+              <option value="منخفض">منخفض</option>
+              <option value="متوسط">متوسط</option>
+              <option value="مرتفع">مرتفع</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cat-max-cap">
+              أقصى رأس مال: <strong id="cat-max-cap-label" style="color: var(--accent-teal);">الكل</strong>
+            </label>
+            <input type="range" id="cat-max-cap" min="100000" max="5000000" step="50000" value="5000000" style="width: 100%; accent-color: var(--accent-teal);" />
+          </div>
+        </div>
+      </div>
+
+      <div class="catalog-grid" id="catalog-grid"></div>
+    </section>
+
+    <!-- ==================== 4. SIDE-BY-SIDE COMPARATOR ==================== -->
+    <section id="view-compare" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">مقارنة الفرص والمراكز</h1>
+          <p class="section-desc">قارن بين 2 إلى 3 أنشطة تجارية أو مراكز إدارية جنباً إلى جنب لاتخاذ قرار مبني على البيانات</p>
+        </div>
+        <div class="segmented-control" id="compare-mode-toggle">
+          <button class="segmented-btn active" data-mode="activities">مقارنة الأنشطة التجارية</button>
+          <button class="segmented-btn" data-mode="markaz">مقارنة المراكز</button>
+        </div>
+      </div>
+
+      <!-- Mode 1: Compare Activities -->
+      <div id="compare-activities-panel">
+        <div class="card" style="margin-bottom: 1.25rem;">
+          <div class="filter-bar" style="margin-bottom: 0;">
+            <div class="field-group">
+              <label class="field-label" for="cmp-act-1">النشاط الأول</label>
+              <select id="cmp-act-1" class="select"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cmp-act-2">النشاط الثاني</label>
+              <select id="cmp-act-2" class="select"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cmp-act-3">النشاط الثالث (اختياري)</label>
+              <select id="cmp-act-3" class="select"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-grid-2">
+          <div class="card">
+            <div class="card-title">مقارنة المؤشرات الرئيسية (Radar)</div>
+            <div class="chart-box">
+              <canvas id="chart-compare-act"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">جدول المقارنة التفصيلي</div>
+            <div class="table-wrap" id="compare-act-table"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: Compare Markaz -->
+      <div id="compare-markaz-panel" style="display: none;">
+        <div class="card" style="margin-bottom: 1.25rem;">
+          <div class="filter-bar" style="margin-bottom: 0;">
+            <div class="field-group">
+              <label class="field-label" for="cmp-mkz-1">المركز الأول</label>
+              <select id="cmp-mkz-1" class="select"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cmp-mkz-2">المركز الثاني</label>
+              <select id="cmp-mkz-2" class="select"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="cmp-mkz-3">المركز الثالث (اختياري)</label>
+              <select id="cmp-mkz-3" class="select"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.25rem;">
+          <div class="card-title">مقارنة المؤشرات العامة للمراكز</div>
+          <div class="table-wrap" id="compare-mkz-table"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">توزيع القطاعات بين المراكز المختارة</div>
+          <div class="chart-box-tall">
+            <canvas id="chart-compare-mkz"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 5. FEASIBILITY SIMULATOR ==================== -->
+    <section id="view-feasibility" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">حاسبة الجدوى المبدئية الذكية</h1>
+          <p class="section-desc">اختر النشاط والمركز وأدخل رأس المال المتاح للحصول على تقييم فوري وتوصيات بأفضل المراكز البديلة</p>
+        </div>
+      </div>
+
+      <div class="feasibility-layout">
+        <div class="card">
+          <div class="card-title">مدخلات المحاكاة</div>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="field-group">
+              <label class="field-label" for="feas-activity">اختر النشاط التجاري</label>
+              <select id="feas-activity" class="select"></select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="feas-markaz">اختر المركز المستهدف</label>
+              <select id="feas-markaz" class="select"></select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="feas-capital">رأس المال المتاح (جنيه مصري)</label>
+              <input type="number" id="feas-capital" class="input" min="0" step="10000" value="500000" />
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.35rem;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-fill-min-cap">الحد الأدنى للنشاط</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-fill-mid-cap">المتوسط المقترح</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="btn-run-feas">تحديث تحليل الجدوى</button>
+          </div>
+        </div>
+
+        <div id="feas-results"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 6. FULL BUSINESS DIRECTORY ==================== -->
+    <section id="view-directory" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">دليل السجلات الشامل</h1>
+          <p class="section-desc">بحث وتصفية فورية في كافة الأنشطة التجارية الموثقة بمحافظة كفر الشيخ مع إمكانية التصدير إلى Excel (CSV)</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <span class="badge badge-teal" id="dir-count-badge">0 سجل</span>
+          <button class="btn btn-primary btn-sm" id="btn-export-csv">⬇️ تصدير النتائج (CSV)</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.15rem;">
+        <div class="filter-bar" style="margin-bottom: 0;">
+          <div class="field-group">
+            <label class="field-label" for="dir-search">بحث بالاسم / الشارع / الفئة</label>
+            <input type="text" id="dir-search" class="input" placeholder="اكتب للبحث الفوري..." />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="dir-markaz">المركز</label>
+            <select id="dir-markaz" class="select"></select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="dir-sector">القطاع الموحد</label>
+            <select id="dir-sector" class="select"></select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="dir-conf">مستوى الثقة</label>
+            <select id="dir-conf" class="select"></select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">&nbsp;</label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="dir-phone-only" />
+              <span>يحتوي على هاتف فقط</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 0.75rem;">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>اسم النشاط</th>
+                <th>القطاع الموحد</th>
+                <th>الفئة الرئيسية</th>
+                <th>المركز</th>
+                <th>المدينة / القرية</th>
+                <th>الشارع / العنوان</th>
+                <th>الهاتف</th>
+                <th>التقييم</th>
+                <th>الثقة</th>
+              </tr>
+            </thead>
+            <tbody id="dir-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <div id="dir-page-info" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+          <div style="display: flex; gap: 0.45rem;">
+            <button class="btn btn-secondary btn-sm" id="dir-prev-btn">السابق</button>
+            <button class="btn btn-secondary btn-sm" id="dir-next-btn">التالي</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MARKET STUDY DETAIL MODAL ==================== -->
+  <div id="activity-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-act-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+            <span class="badge badge-teal" id="modal-act-sector"></span>
+            <span class="badge badge-amber" id="modal-act-status"></span>
+            <span class="opp-score-badge" id="modal-act-score"></span>
+          </div>
+          <h2 id="modal-act-title" style="font-size: 1.35rem; font-weight: 800;"></h2>
+        </div>
+        <button class="modal-close" id="modal-close-btn" aria-label="إغلاق">×</button>
+      </div>
+
+      <div id="modal-act-body"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+        <button class="btn btn-secondary" id="modal-cancel-btn">إغلاق</button>
+        <button class="btn btn-primary" id="modal-sim-btn">🧮 محاكاة الجدوى لهذا النشاط</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
