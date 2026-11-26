@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>منصة كفر الشيخ الذكية للاستثمار ودراسة السوق — V5 Institutional</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <div class="loading-title">جاري تحميل منصة كفر الشيخ المؤسسية V5...</div>
+      <div class="loading-sub">تجهيز النماذج المالية وبيانات السوق الموثقة</div>
+    </div>
+  </div>
+
+  <!-- App Shell -->
+  <div class="app-shell">
+    <!-- Top Institutional Bar -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-mark">KFS</div>
+        <div class="brand-text">
+          <div class="brand-title">
+            منصة كفر الشيخ الذكية للاستثمار ودراسة السوق
+            <span class="version-pill">V5 INSTITUTIONAL</span>
+          </div>
+          <div class="brand-subtitle">ذكاء السوق المؤسسي • النمذجة المالية • تحليل الفجوات الاستثمارية</div>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <!-- Data Governance Badge -->
+        <button id="govBadgeBtn" class="gov-badge" title="حوكمة وجودة البيانات">
+          <span class="gov-dot"></span>
+          <span>جودة البيانات: <strong id="topQualityScore" class="num">--</strong>%</span>
+        </button>
+
+        <!-- Currency Switcher -->
+        <div class="currency-switcher" role="group" aria-label="تبديل العملة">
+          <button id="currEgpBtn" class="curr-btn active" data-curr="EGP">EGP ج.م</button>
+          <button id="currUsdBtn" class="curr-btn" data-curr="USD">USD $</button>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="icon-btn" title="تبديل المظهر (داكن / فاتح)" aria-label="تبديل المظهر">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Primary Navigation -->
+    <nav class="main-nav" role="tablist">
+      <button class="nav-tab active" data-view="dashboard" role="tab">
+        <span class="nav-icon">📊</span>
+        <span>لوحة القيادة المؤسسية</span>
+      </button>
+      <button class="nav-tab" data-view="map" role="tab">
+        <span class="nav-icon">🗺️</span>
+        <span>خريطة السوق التفاعلية</span>
+      </button>
+      <button class="nav-tab" data-view="explorer" role="tab">
+        <span class="nav-icon">🎯</span>
+        <span>مستكشف الأنشطة والفرص</span>
+      </button>
+      <button class="nav-tab" data-view="comparator" role="tab">
+        <span class="nav-icon">⚖️</span>
+        <span>المقارنة المؤسسية</span>
+      </button>
+      <button class="nav-tab" data-view="simulator" role="tab">
+        <span class="nav-icon">🧮</span>
+        <span>محاكي الجدوى المتقدم</span>
+      </button>
+      <button class="nav-tab" data-view="directory" role="tab">
+        <span class="nav-icon">📑</span>
+        <span>دليل السجلات الشامل</span>
+      </button>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+
+      <!-- ========================================================= -->
+      <!-- VIEW 1: EXECUTIVE DASHBOARD                               -->
+      <!-- ========================================================= -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">لوحة القيادة المؤسسية — محافظة كفر الشيخ</h1>
+            <p class="section-desc">نظرة تنفيذية شاملة على حجم السوق (TAM/SAM/SOM)، مصفوفة المخاطر والعائد، وتمركز المراكز والقطاعات.</p>
+          </div>
+          <div class="fx-pill">
+            سعر الصرف المرجعي: <strong id="fxRateLabel" class="num">1 USD = 50.0 EGP</strong>
+          </div>
+        </div>
+
+        <!-- 6 Executive KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">إجمالي الأنشطة الموثقة</div>
+            <div class="kpi-value num" id="kpiTotalBusinesses">--</div>
+            <div class="kpi-meta" id="kpiBusinessesMeta">عبر 14 مركزاً ومدينة</div>
+          </div>
+          <div class="kpi-card accent-emerald">
+            <div class="kpi-label">حجم السوق المستهدف (TAM)</div>
+            <div class="kpi-value num" id="kpiTotalTam">--</div>
+            <div class="kpi-meta">تقدير سنوي إجمالي للسوق</div>
+          </div>
+          <div class="kpi-card accent-gold">
+            <div class="kpi-label">متوسط معدل العائد الداخلي (IRR)</div>
+            <div class="kpi-value num" id="kpiAvgIrr">--</div>
+            <div class="kpi-meta">أفق استثماري 5 سنوات</div>
+          </div>
+          <div class="kpi-card accent-cyan">
+            <div class="kpi-label">جودة وموثوقية البيانات</div>
+            <div class="kpi-value num" id="kpiDataQuality">--</div>
+            <div class="kpi-meta">مؤشر الحوكمة والتدقيق</div>
+          </div>
+          <div class="kpi-card accent-violet">
+            <div class="kpi-label">أعلى فرصة استثمارية</div>
+            <div class="kpi-value kpi-value-sm" id="kpiTopOppName">--</div>
+            <div class="kpi-meta num" id="kpiTopOppMeta">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">القطاعات الموحدة</div>
+            <div class="kpi-value num" id="kpiTotalSectors">--</div>
+            <div class="kpi-meta" id="kpiCatalogCount">32 نموذج نشاط استثماري</div>
+          </div>
+        </div>
+
+        <!-- Risk-Return Matrix + TAM/SAM/SOM -->
+        <div class="dashboard-grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">مصفوفة المخاطر والعائد (2×2 Risk-Return Matrix)</h2>
+                <p class="panel-sub">انقر على أي نقطة لفتح بطاقة الاستثمار التفصيلية (Investment Tear Sheet)</p>
+              </div>
+              <div class="quadrant-legend">
+                <span class="q-dot q-gold"></span>الفرص الذهبية
+                <span class="q-dot q-cyan"></span>نمو انتقائي
+                <span class="q-dot q-emerald"></span>سيولة مستقرة
+                <span class="q-dot q-red"></span>تحوط ومراقبة
+              </div>
+            </div>
+            <div class="chart-wrap chart-lg">
+              <canvas id="riskReturnChart"></canvas>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">توزيع حجم السوق (TAM / SAM / SOM) حسب القطاعات</h2>
+                <p class="panel-sub">أعلى 10 قطاعات من حيث القيمة السوقية السنوية</p>
+              </div>
+            </div>
+            <div class="chart-wrap chart-lg">
+              <canvas id="sectorTamChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Markaz Density & HHI Concentration -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">كثافة المراكز ومؤشر التركز التنافسي (HHI Concentration & Density)</h2>
+              <p class="panel-sub">مقارنة الكثافة لكل 10,000 نسمة، مؤشر HHI، حجم السوق TAM، ودرجة جودة البيانات لكل مركز</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>المركز / المنطقة</th>
+                  <th>السكان (تقديري)</th>
+                  <th>الأنشطة المسجلة</th>
+                  <th>الكثافة / 10 آلاف</th>
+                  <th>مؤشر HHI</th>
+                  <th>حجم السوق (TAM)</th>
+                  <th>مؤشر الفرصة</th>
+                  <th>جودة البيانات</th>
+                </tr>
+              </thead>
+              <tbody id="markazSummaryBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Data Provenance & Governance Banner -->
+        <div class="governance-banner" id="governanceBanner">
+          <div class="gov-banner-header">
+            <span class="gov-shield">🛡️</span>
+            <div>
+              <h3>حوكمة البيانات وموثوقية المصادر (Data Provenance & Governance)</h3>
+              <p>منهجية شفافة لتصنيف مستويات الثقة والتقديرات المالية لبيانات محافظة كفر الشيخ</p>
+            </div>
+          </div>
+          <div class="gov-grid">
+            <div class="gov-item">
+              <div class="gov-item-title"><span class="badge badge-high">ثقة عالية (High)</span></div>
+              <p>سجلات موثقة بإحداثيات GPS أو أرقام هواتف وعناوين ميدانية وتقييمات مستخدمين محققة.</p>
+              <div class="gov-stat num" id="govHighCount">--</div>
+            </div>
+            <div class="gov-item">
+              <div class="gov-item-title"><span class="badge badge-med">ثقة متوسطة (Medium)</span></div>
+              <p>سجلات مصنفة قطاعياً وجغرافياً مع عنوان أو وسيلة تواصل جزئية تخضع للتحديث الدوري.</p>
+              <div class="gov-stat num" id="govMedCount">--</div>
+            </div>
+            <div class="gov-item">
+              <div class="gov-item-title"><span class="badge badge-low">ثقة أولية (Low)</span></div>
+              <p>كيانات مرصودة من أدلة عامة تتطلب تحققاً ميدانياً إضافياً قبل اتخاذ قرارات تعاقدية.</p>
+              <div class="gov-stat num" id="govLowCount">--</div>
+            </div>
+            <div class="gov-item">
+              <div class="gov-item-title"><span class="badge badge-info">منهجية النمذجة</span></div>
+              <p>تُحتسب مؤشرات IRR وNPV وTAM/SAM/SOM وفق معايير السوق المصري وبمعدل خصم مرجعي 18% مع تحليل حساسية لـ 3 سيناريوهات.</p>
+              <div class="gov-stat num" id="govAvgScore">متوسط الجودة: --%</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 2: INTERACTIVE MARKET MAP                            -->
+      <!-- ========================================================= -->
+      <section id="view-map" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">خريطة السوق التفاعلية — كفر الشيخ</h1>
+            <p class="section-desc">استعرض دوائر المراكز حسب الفرصة أو التشبع أو مؤشر HHI، مع طبقة النقاط الموثقة بإحداثيات GPS.</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="mapLayerMode">وضع العرض الجغرافي</label>
+            <select id="mapLayerMode" class="form-control">
+              <option value="opportunity">دوائر المراكز — مؤشر الفرصة (Opportunity)</option>
+              <option value="saturation">دوائر المراكز — مؤشر التشبع (Saturation)</option>
+              <option value="hhi">دوائر المراكز — التركز التنافسي (HHI)</option>
+              <option value="gps">النقاط الموثقة فقط (43 نقطة GPS)</option>
+              <option value="both">طبقة مزدوجة (المراكز + نقاط GPS)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="mapSectorFilter">تصفية حسب القطاع</label>
+            <select id="mapSectorFilter" class="form-control">
+              <option value="ALL">جميع القطاعات</option>
+            </select>
+          </div>
+          <div class="map-stats-inline">
+            <span>النقاط المعروضة: <strong id="mapPointsCount" class="num">--</strong></span>
+          </div>
+        </div>
+
+        <div class="panel map-panel">
+          <div id="marketMap" class="leaflet-container-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 3: MARKET & DEAL EXPLORER                            -->
+      <!-- ========================================================= -->
+      <section id="view-explorer" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">مستكشف الأنشطة والفرص الاستثمارية</h1>
+            <p class="section-desc">تصفية 32 نموذج نشاط استثماري حسب الربع الاستثماري، القطاع، الحالة، والحد الأقصى لرأس المال.</p>
+          </div>
+          <div class="results-counter">
+            المعروض: <strong id="explorerCount" class="num">0</strong> نشاط
+          </div>
+        </div>
+
+        <div class="filter-bar explorer-filters">
+          <div class="filter-group">
+            <label for="expSearch">بحث بالاسم أو الوصف</label>
+            <input type="text" id="expSearch" class="form-control" placeholder="ابحث عن نشاط (مثل: أسماك، طاقة، أعلاف)..." />
+          </div>
+          <div class="filter-group">
+            <label for="expQuadrant">الربع الاستثماري</label>
+            <select id="expQuadrant" class="form-control">
+              <option value="ALL">جميع الأرباع</option>
+              <option value="الفرص الذهبية">الفرص الذهبية</option>
+              <option value="نمو انتقائي">نمو انتقائي</option>
+              <option value="سيولة مستقرة">سيولة مستقرة</option>
+              <option value="تحوط ومراقبة">تحوط ومراقبة</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="expStatus">حالة التغطية</label>
+            <select id="expStatus" class="form-control">
+              <option value="ALL">جميع الحالات</option>
+              <option value="نشاط جديد مضاف">نشاط جديد مضاف</option>
+              <option value="غير مضاف جيداً">غير مضاف جيداً</option>
+              <option value="مكتمل">مكتمل</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="expSector">القطاع</label>
+            <select id="expSector" class="form-control">
+              <option value="ALL">جميع القطاعات</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="expMaxCap">الحد الأقصى لرأس المال: <strong id="expMaxCapLabel" class="num">الكل</strong></label>
+            <input type="range" id="expMaxCap" min="200000" max="15000000" step="100000" value="15000000" />
+          </div>
+        </div>
+
+        <div id="explorerGrid" class="deal-grid"></div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 4: SIDE-BY-SIDE INSTITUTIONAL COMPARATOR             -->
+      <!-- ========================================================= -->
+      <section id="view-comparator" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">المقارنة المؤسسية (Side-by-Side Comparator)</h1>
+            <p class="section-desc">قارن بين 2 إلى 3 أنشطة استثمارية أو 2 إلى 3 مراكز جغرافية بمؤشرات مالية وسوقية موحدة.</p>
+          </div>
+          <div class="segmented-control">
+            <button id="compModeActivities" class="seg-btn active" data-mode="activities">مقارنة الأنشطة</button>
+            <button id="compModeMarkaz" class="seg-btn" data-mode="markaz">مقارنة المراكز</button>
+          </div>
+        </div>
+
+        <div class="filter-bar comparator-selectors">
+          <div class="filter-group">
+            <label for="compSelect1">العنصر الأول</label>
+            <select id="compSelect1" class="form-control"></select>
+          </div>
+          <div class="filter-group">
+            <label for="compSelect2">العنصر الثاني</label>
+            <select id="compSelect2" class="form-control"></select>
+          </div>
+          <div class="filter-group">
+            <label for="compSelect3">العنصر الثالث (اختياري)</label>
+            <select id="compSelect3" class="form-control"></select>
+          </div>
+        </div>
+
+        <div class="dashboard-grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title" id="compTableTitle">جدول المقارنة المؤسسية</h2>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="compTable">
+                <thead id="compTableHead"></thead>
+                <tbody id="compTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title" id="compChartTitle">التمثيل البصري للمقارنة</h2>
+            </div>
+            <div class="chart-wrap chart-lg">
+              <canvas id="comparatorChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 5: PRO FINANCIAL MODELER / SIMULATOR                 -->
+      <!-- ========================================================= -->
+      <section id="view-simulator" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">محاكي الجدوى المالية المتقدم (Pro Financial Modeler)</h1>
+            <p class="section-desc">اختبار الحساسية الفوري لتغير الإشغال، التكاليف التشغيلية، ومعدل الخصم مع توليد مذكرة استثمارية جاهزة للطباعة.</p>
+          </div>
+          <button id="simPrintMemoBtn" class="btn btn-primary">
+            <span>🖨️</span> تصدير مذكرة استثمارية (PDF / طباعة)
+          </button>
+        </div>
+
+        <div class="simulator-layout">
+          <!-- Controls Column -->
+          <div class="panel sim-controls">
+            <h2 class="panel-title">مدخلات النموذج المالي</h2>
+
+            <div class="form-group">
+              <label for="simActivity">النشاط الاستثماري</label>
+              <select id="simActivity" class="form-control"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="simMarkaz">المركز المستهدف</label>
+              <select id="simMarkaz" class="form-control"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="simCapital">رأس المال المستثمر (CAPEX): <strong id="simCapitalLabel" class="num">--</strong></label>
+              <input type="number" id="simCapital" class="form-control num" step="50000" min="100000" />
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-head">
+                <label for="simSalesSlider">معامل المبيعات / الإشغال</label>
+                <strong id="simSalesVal" class="num accent-emerald-text">100%</strong>
+              </div>
+              <input type="range" id="simSalesSlider" min="70" max="130" step="1" value="100" />
+              <div class="slider-ticks"><span>70%</span><span>100%</span><span>130%</span></div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-head">
+                <label for="simOpexSlider">تغير التكاليف التشغيلية (OPEX)</label>
+                <strong id="simOpexVal" class="num accent-gold-text">0%</strong>
+              </div>
+              <input type="range" id="simOpexSlider" min="-15" max="25" step="1" value="0" />
+              <div class="slider-ticks"><span>-15%</span><span>0%</span><span>+25%</span></div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-head">
+                <label for="simDiscountSlider">معدل الخصم (WACC / Discount Rate)</label>
+                <strong id="simDiscountVal" class="num accent-cyan-text">18%</strong>
+              </div>
+              <input type="range" id="simDiscountSlider" min="12" max="24" step="0.5" value="18" />
+              <div class="slider-ticks"><span>12%</span><span>18%</span><span>24%</span></div>
+            </div>
+
+            <button id="simResetBtn" class="btn btn-secondary btn-full">إعادة تعيين الافتراضات الأساسية</button>
+          </div>
+
+          <!-- Outputs Column -->
+          <div class="sim-outputs">
+            <!-- Smart Verdict Banner -->
+            <div id="simVerdictBox" class="verdict-box">
+              <div class="verdict-badge" id="simVerdictBadge">--</div>
+              <div>
+                <h3 id="simVerdictTitle">التوصية الاستثمارية</h3>
+                <p id="simVerdictText">--</p>
+              </div>
+            </div>
+
+            <!-- 4 Live Financial KPIs -->
+            <div class="sim-kpi-grid">
+              <div class="kpi-card accent-emerald">
+                <div class="kpi-label">معدل العائد الداخلي (IRR 5Y)</div>
+                <div class="kpi-value num" id="simOutIrr">--</div>
+              </div>
+              <div class="kpi-card accent-cyan">
+                <div class="kpi-label">صافي القيمة الحالية (NPV)</div>
+                <div class="kpi-value num" id="simOutNpv">--</div>
+              </div>
+              <div class="kpi-card accent-gold">
+                <div class="kpi-label">العائد السنوي على الاستثمار (ROI)</div>
+                <div class="kpi-value num" id="simOutRoi">--</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">فترة الاسترداد (Break-Even)</div>
+                <div class="kpi-value num" id="simOutPayback">--</div>
+              </div>
+            </div>
+
+            <!-- 3-Scenario Sensitivity Table -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">تحليل الحساسية للسيناريوهات الثلاثة (3-Scenario Sensitivity)</h2>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>السيناريو</th>
+                      <th>الإيراد السنوي</th>
+                      <th>صافي الربح السنوي</th>
+                      <th>IRR (5 سنوات)</th>
+                      <th>NPV</th>
+                      <th>فترة الاسترداد</th>
+                    </tr>
+                  </thead>
+                  <tbody id="simScenarioBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Top 3 Alternative Markaz -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">أفضل 3 مراكز بديلة ومقترحة لهذا النشاط</h2>
+              </div>
+              <div id="simAltMarkaz" class="alt-markaz-grid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 6: FULL RECORDS DIRECTORY                            -->
+      <!-- ========================================================= -->
+      <section id="view-directory" class="view-section">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">دليل السجلات الشامل (3,534+ منشأة موثقة)</h1>
+            <p class="section-desc">بحث فوري، تصفية متعددة الأبعاد، وتصدير مباشر بصيغة CSV متوافقة مع Excel (UTF-8 BOM).</p>
+          </div>
+          <button id="exportCsvBtn" class="btn btn-primary">
+            <span>⬇️</span> تصدير النتائج (CSV)
+          </button>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="dirSearch">بحث فوري</label>
+            <input type="text" id="dirSearch" class="form-control" placeholder="اسم المنشأة، النشاط، العنوان، الهاتف..." />
+          </div>
+          <div class="filter-group">
+            <label for="dirMarkaz">المركز</label>
+            <select id="dirMarkaz" class="form-control">
+              <option value="ALL">جميع المراكز</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="dirSector">القطاع</label>
+            <select id="dirSector" class="form-control">
+              <option value="ALL">جميع القطاعات</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="dirConf">مستوى الثقة</label>
+            <select id="dirConf" class="form-control">
+              <option value="ALL">الكل</option>
+              <option value="High">عالي (High)</option>
+              <option value="Medium">متوسط (Medium)</option>
+              <option value="Low">أولي (Low)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="dir-toolbar">
+            <span>إجمالي النتائج المطابقة: <strong id="dirTotalMatched" class="num">0</strong></span>
+            <div class="pagination-controls">
+              <button id="dirPrevBtn" class="btn btn-secondary btn-sm">السابق</button>
+              <span id="dirPageInfo" class="num">صفحة 1 من 1</span>
+              <button id="dirNextBtn" class="btn btn-secondary btn-sm">التالي</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>اسم المنشأة</th>
+                  <th>القطاع الموحد</th>
+                  <th>المركز</th>
+                  <th>القرية / الحي</th>
+                  <th>العنوان</th>
+                  <th>الهاتف</th>
+                  <th>التقييم</th>
+                  <th>الثقة</th>
+                </tr>
+              </thead>
+              <tbody id="dirTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- INVESTMENT TEAR SHEET MODAL                               -->
+  <!-- ========================================================= -->
+  <div id="tearSheetModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div>
+          <div class="modal-badges" id="tsBadges"></div>
+          <h2 id="tsTitle" class="modal-title">--</h2>
+          <p id="tsSector" class="modal-sub">--</p>
+        </div>
+        <button id="tsCloseBtn" class="icon-btn" aria-label="إغلاق">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p id="tsDescription" class="ts-desc"></p>
+
+        <!-- Key Financial Metrics -->
+        <div class="ts-metrics-grid" id="tsFinancialGrid"></div>
+
+        <!-- TAM / SAM / SOM Bar -->
+        <div class="ts-section">
+          <h3>حجم السوق المستهدف (TAM / SAM / SOM)</h3>
+          <div class="tam-grid" id="tsTamGrid"></div>
+        </div>
+
+        <!-- 3-Scenario Table -->
+        <div class="ts-section">
+          <h3>تحليل الحساسية (متحفظ / أساسي / متفائل)</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>السيناريو</th>
+                  <th>الإيراد السنوي</th>
+                  <th>صافي الربح</th>
+                  <th>IRR</th>
+                  <th>فترة الاسترداد</th>
+                </tr>
+              </thead>
+              <tbody id="tsScenariosBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Qualitative Details -->
+        <div class="ts-qual-grid">
+          <div class="ts-box">
+            <h4>التراخيص والمتطلبات</h4>
+            <ul id="tsLicenses"></ul>
+          </div>
+          <div class="ts-box">
+            <h4>عوامل النجاح الحرجة</h4>
+            <ul id="tsSuccess"></ul>
+          </div>
+          <div class="ts-box">
+            <h4>المخاطر والتحديات</h4>
+            <ul id="tsRisks"></ul>
+          </div>
+          <div class="ts-box">
+            <h4>مصدر وموثوقية البيانات</h4>
+            <p id="tsProvenance" class="ts-prov-text"></p>
+            <div class="ts-best-markaz">
+              <strong>أفضل المراكز المقترحة:</strong>
+              <span id="tsBestMarkaz"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="tsSimulateBtn" class="btn btn-secondary">🧮 محاكاة الجدوى</button>
+        <button id="tsPrintMemoBtn" class="btn btn-primary">🖨️ تصدير مذكرة استثمارية (PDF / طباعة)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- BOARDROOM ONE-PAGER INVESTMENT MEMO (PRINT ONLY)          -->
+  <!-- ========================================================= -->
+  <section id="print-memo" class="print-memo"></section>
+
+  <script src="app.js"></script>
+</body>
+</html>
